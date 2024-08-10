@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>레벨 1</title>
+    <title>아스키 스틱맨 플랫포머 - 레벨 1</title>
     <style>
         body {
             font-family: monospace;
@@ -21,6 +21,8 @@
             line-height: 1;
             white-space: pre;
             position: relative;
+            width: 40ch;
+            height: 15em;
         }
         #player {
             position: absolute;
@@ -30,9 +32,10 @@
             position: absolute;
             width: 20ch;
             height: 1em;
+            background-color: white;
         }
         .trap {
-            color: red;
+            background-color: red;
         }
     </style>
 </head>
@@ -47,25 +50,34 @@
         let playerX = 0;
         let playerY = 12;
 
-        // 플랫폼 설정
-        const platforms = [
-            { top: 12, left: 2, moving: false }, // 고정 플랫폼
-            { top: 9, left: 12, moving: false, trap: true }, // 함정
-            { top: 6, left: 6, moving: true, directionX: 1, directionY: 0 }, // 좌우 이동 플랫폼
-            { top: 3, left: 18, moving: true, directionX: 0, directionY: 1 }, // 상하 이동 플랫폼
-        ];
+        // 플랫폼 배열 초기화
+        const platforms = [];
 
-        // 플랫폼 생성 및 추가
-        platforms.forEach((platform, index) => {
+        // 플랫폼 생성 함수
+        function createPlatform(top, left, moving = false, trap = false, directionX = 0, directionY = 0) {
             const platformElement = document.createElement('div');
             platformElement.classList.add('platform');
-            if (platform.trap) platformElement.classList.add('trap');
-            platformElement.style.top = `${platform.top}em`;
-            platformElement.style.left = `${platform.left}ch`;
-            platformElement.dataset.index = index;
+            if (trap) platformElement.classList.add('trap');
+            platformElement.style.top = `${top}em`;
+            platformElement.style.left = `${left}ch`;
             game.appendChild(platformElement);
-            platform.element = platformElement;
-        });
+
+            platforms.push({
+                element: platformElement,
+                top: top,
+                left: left,
+                moving: moving,
+                trap: trap,
+                directionX: directionX,
+                directionY: directionY,
+            });
+        }
+
+        // 플랫폼 생성
+        createPlatform(12, 2); // 고정 플랫폼
+        createPlatform(9, 12, false, true); // 고정 함정
+        createPlatform(6, 6, true, false, 1, 0); // 좌우 이동 플랫폼
+        createPlatform(3, 18, true, false, 0, 1); // 상하 이동 플랫폼
 
         function updatePosition() {
             player.style.transform = `translate(${playerX}ch, ${playerY}em)`;
@@ -82,8 +94,8 @@
 
         function checkTrap() {
             platforms.forEach(platform => {
-                const platformTop = parseInt(platform.top);
-                const platformLeft = parseInt(platform.left);
+                const platformTop = platform.top;
+                const platformLeft = platform.left;
                 if (playerY == platformTop && playerX >= platformLeft && playerX <= platformLeft + 20) {
                     if (platform.trap) {
                         alert("함정에 빠졌습니다! 다시 시작하세요.");
@@ -119,8 +131,8 @@
         function onPlatform() {
             let onPlatform = false;
             platforms.forEach(platform => {
-                const platformTop = parseInt(platform.top);
-                const platformLeft = parseInt(platform.left);
+                const platformTop = platform.top;
+                const platformLeft = platform.left;
                 if (playerY == platformTop && playerX >= platformLeft && playerX <= platformLeft + 20) {
                     onPlatform = true;
                 }
@@ -146,8 +158,8 @@
                     platform.left += platform.directionX;
                     platform.top += platform.directionY;
 
-                    if (platform.left > 30 || platform.left < 0) platform.directionX *= -1;
-                    if (platform.top > 15 || platform.top < 0) platform.directionY *= -1;
+                    if (platform.left > 20 || platform.left < 0) platform.directionX *= -1;
+                    if (platform.top > 12 || platform.top < 0) platform.directionY *= -1;
 
                     platform.element.style.left = `${platform.left}ch`;
                     platform.element.style.top = `${platform.top}em`;
