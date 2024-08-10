@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레벨 1</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #game {
+            font-size: 20px;
+            line-height: 1;
+            white-space: pre;
+            position: relative;
+        }
+        #player {
+            position: absolute;
+            color: blue;
+        }
+        .platform {
+            position: absolute;
+            width: 20ch;
+            height: 1em;
+        }
+        .trap {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="player">■</div>
+    </div>
+
+    <script>
+        const game = document.getElementById('game');
+        const player = document.getElementById('player');
+        let playerX = 0;
+        let playerY = 12;
+
+        // 플랫폼 설정
+        const platforms = [
+            { top: 12, left: 2, moving: false }, // 고정 플랫폼
+            { top: 9, left: 12, moving: false, trap: true }, // 함정
+            { top: 6, left: 6, moving: true, directionX: 1, directionY: 0 }, // 좌우 이동 플랫폼
+            { top: 3, left: 18, moving: true, directionX: 0, directionY: 1 }, // 상하 이동 플랫폼
+        ];
+
+        // 플랫폼 생성 및 추가
+        platforms.forEach((platform, index) => {
+            const platformElement = document.createElement('div');
+            platformElement.classList.add('platform');
+            if (platform.trap) platformElement.classList.add('trap');
+            platformElement.style.top = `${platform.top}em`;
+            platformElement.style.left = `${platform.left}ch`;
+            platformElement.dataset.index = index;
+            game.appendChild(platformElement);
+            platform.element = platformElement;
+        });
+
+        function updatePosition() {
+            player.style.transform = `translate(${playerX}ch, ${playerY}em)`;
+            checkWin();
+            checkTrap();
+        }
+
+        function checkWin() {
+            if (playerY <= 0) {
+                alert("다음 레벨로 이동합니다!");
+                window.location.href = 'level2.html';
+            }
+        }
+
+        function checkTrap() {
+            platforms.forEach(platform => {
+                const platformTop = parseInt(platform.top);
+                const platformLeft = parseInt(platform.left);
+                if (playerY == platformTop && playerX >= platformLeft && playerX <= platformLeft + 20) {
+                    if (platform.trap) {
+                        alert("함정에 빠졌습니다! 다시 시작하세요.");
+                        playerX = 0;
+                        playerY = 12;
+                        updatePosition();
+                    }
+                }
+            });
+        }
+
+        function jump() {
+            let jumpHeight = 3;
+            let jumpInterval = setInterval(() => {
+                if (jumpHeight > 0) {
+                    playerY -= 1;
+                    jumpHeight--;
+                } else {
+                    clearInterval(jumpInterval);
+                    let fallInterval = setInterval(() => {
+                        if (playerY < 12 && !onPlatform()) {
+                            playerY += 1;
+                        } else {
+                            clearInterval(fallInterval);
+                        }
+                        updatePosition();
+                    }, 100);
+                }
+                updatePosition();
+            }, 100);
+        }
+
+        function onPlatform() {
+            let onPlatform = false;
+            platforms.forEach(platform => {
+                const platformTop = parseInt(platform.top);
+                const platformLeft = parseInt(platform.left);
+                if (playerY == platformTop && playerX >= platformLeft && playerX <= platformLeft + 20) {
+                    onPlatform = true;
+                }
+            });
+            return onPlatform;
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                playerX++;
+            } else if (event.key === 'ArrowLeft') {
+                playerX--;
+            } else if (event.key === ' ') {
+                jump();
+            }
+            updatePosition();
+        });
+
+        // 움직이는 플랫폼 업데이트
+        function movePlatforms() {
+            platforms.forEach(platform => {
+                if (platform.moving) {
+                    platform.left += platform.directionX;
+                    platform.top += platform.directionY;
+
+                    if (platform.left > 30 || platform.left < 0) platform.directionX *= -1;
+                    if (platform.top > 15 || platform.top < 0) platform.directionY *= -1;
+
+                    platform.element.style.left = `${platform.left}ch`;
+                    platform.element.style.top = `${platform.top}em`;
+                }
+            });
+        }
+
+        setInterval(movePlatforms, 500); // 움직이는 플랫폼의 위치를 0.5초마다 업데이트
+
+        updatePosition();
+    </script>
+</body>
+</html>
